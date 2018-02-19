@@ -3,7 +3,7 @@
 Front-End (Client directory)
 API (webapp directory).
 
-(https://featuresapp.digitalmarshmellow.com) [https://featuresapp.digitalmarshmellow.com]
+Live Demo: https://featuresapp.digitalmarshmellow.com
 
 ## Installation:
 
