@@ -1,0 +1,7 @@
+{% load rest_framework %}
+
+<form id="new-project" method="POST">
+    {% csrf_token %}
+    {% render_form serializer %}
+</form>
+<input id="create-project-btn" class="btn btn-primary" type="submit" value="Create Project">

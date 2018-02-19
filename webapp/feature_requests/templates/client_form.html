@@ -1,0 +1,7 @@
+{% load rest_framework %}
+
+<form id="new-client" method="POST">
+    {% csrf_token %}
+    {% render_form serializer %}
+</form>
+<input id="create-client-btn" type="submit" class="btn btn-primary" value="Create Client">

@@ -1,0 +1,14 @@
+{% load rest_framework %}
+
+
+<form id="update-feature-form">
+    {% render_form features_serializer %}
+    <input type="hidden" id="feature_pk" value="{{ feature_obj.pk }}">
+</form>
+<button type="submit" id="update-feature-btn" class="btn btn-primary">Update Feature</button>
+
+
+
+
+
+

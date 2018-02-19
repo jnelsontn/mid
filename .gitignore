@@ -1,0 +1,11 @@
+static/
+mid/bin
+__pycache__
+migrations/
+*.pyc
+env/
+*.db
+mid/
+*.sqlite3
+.idea/
+node_modules/

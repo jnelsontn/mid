@@ -1,0 +1,233 @@
+<!doctype html><html lang="en">
+
+<head>
+
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<title> Feature Request App </title>
+
+    <script type="text/javascript" src="dist/jquery.min.js"></script>
+    <script type="text/javascript" src="dist/sweetalert2.all.min.js"></script>
+    <script type="text/javascript" src="dist/util.js"></script>
+	<link href="dist/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="dist/main.css" rel="stylesheet" type="text/css">
+
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-md-5">
+
+            <div class="alert alert-success">
+                <h4>Choose a Client & Project to Update a Feature</h4>
+                <p>
+                    NOTE: A Project may only be assigned to one client and a feature to only one project.
+                </p>
+            </div>
+
+            <br />
+
+            <div id="clients-div">
+                <select id="clients" class="form-control">
+                    <option value="" selected>Choose Client</option>
+                </select>
+            </div>
+
+            <br />
+
+            <div id="projects-div">
+                <select id="projects" class="form-control">
+                    <option value="" selected>Choose Project</option>
+                </select>
+            </div>
+
+            <br />
+
+            <div id="features-div">
+                <select id="features" class="form-control">
+                    <option value="" selected>Choose Feature</option>
+                </select>
+            </div>
+
+            <br /><br />
+
+            <div class="btn-group">
+                <button id="create-new-feature" class="btn btn-primary btn-group-sm">
+                    Create New Feature</button>
+
+                <button id="create-new-client" class="btn btn-success btn-group-sm">
+                    Create New Client</button>
+
+                <button id="create-new-project" class="btn btn-success btn-group-sm">
+                    Create New Project</button>
+            </div>
+
+            <br /><br />
+
+            <div class="alert alert-success">
+                <p>
+                    Each priority set on a feature is based on the total number of
+                    features listed for each project. <br />
+                    Attempting to set a number greater than the total number of features or
+                    0 will not update your feature. <br />
+                    Additionally, ensure all form fields are filled.
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- append forms -->
+        <div class="col-md-1"></div>
+        <div class="col-md-5" id="feature_form"></div>
+
+    </div> <!-- end row -->
+</div><!-- end container -->
+</body>
+<script language="javascript" type="text/javascript">
+$(document).ready(function() {
+    var apiUrl = 'http://127.0.0.1:8000';
+    $('#nav-container').load('templates/navbar.html');
+    $('#projects-div').hide();
+    $('#features-div').hide();
+    $('#feature_form').empty();
+    $('#feature_form').hide();
+
+    // load client data when page loads
+    call_url(apiUrl + '/clients/', null, onload_function, error_function, null, 'GET');
+    function onload_function(response) {
+        var response = response.results;
+        $.each(response, function(index, value) {
+           $('#clients').append('<option value="' + value.client_id + '">' + value.client_name + '</option>');
+        });
+    }
+    // end onload function
+
+    // client
+    $('#clients').on('change', function(e) {
+        e.preventDefault();
+        $('#feature_form').empty().hide();
+        $('#projects').empty();
+        $('#features').empty();
+
+        if ($(this).val() == '') {
+            $('#projects-div').hide();
+            $('#features-div').hide();
+            return;
+        }
+        call_url(apiUrl + '/projects/?client_id=' + $(this).val(), null, individual_client_projects, error_function, null, 'GET');
+    });
+
+    // project
+    $('#projects').on('change', function(e) {
+        e.preventDefault();
+        $('#feature_form').empty().hide();
+        $('#features').empty();
+        $('#features-div').hide();
+
+        if ($(this).val() == '') {
+            $('#features-div');
+            return;
+        }
+        call_url(apiUrl + '/features/?project_id=' + $(this).val(), null, individual_project_features, error_function, null, 'GET');
+    });
+
+    // feature
+    $('#features').on('change', function(e) {
+        e.preventDefault();
+
+        if ($(this).val() == '') {
+            $('#feature_form').empty();
+            return;
+        }
+
+        $('#feature_form').hide();
+        $('#feature_form').empty();
+
+        call_url(apiUrl + '/features/' + $(this).val() + '.html', null, build_feature_div, error_function, null, 'GET');
+    });
+
+    // responses
+    function individual_client_projects(response) {
+        var response = response.results;
+        $('#projects-div').show();
+        $('#projects').append('<option value="">Choose Project</option>');
+        $('#features').append('<option value="">Choose Feature</option>');
+
+        $.each(response, function(index, value) {
+           $('#projects').append('<option value="' + value.project_id + '">' + value.project_name + '</option>');
+        });
+    }
+
+    function individual_project_features(response) {
+        var response = response.results;
+        $('#features-div').show();
+        $('#features').append('<option value="">Choose Feature</option>');
+
+        $.each(response, function(index, value) {
+           $('#features').append('<option value="' + value.features_id + '">' + value.title + '</option>');
+        });
+    }
+
+    function build_feature_div(response) {
+        $('#feature_form').show();
+        $('#feature_form').empty().append(response);
+    }
+    // end response
+
+    // handle index.html buttons
+    $('#create-new-client').on('click', function(e) {
+       e.preventDefault();
+       $.get( apiUrl + '/clients/', '', build_feature_div, 'html');
+    });
+
+    $('#create-new-project').on('click', function(e) {
+       e.preventDefault();
+       $.get( apiUrl + '/projects/', '', build_feature_div, 'html');
+    });
+
+    $('#create-new-feature').on('click', function(e) {
+       e.preventDefault();
+       $.get( apiUrl + '/features/?create=1', '', build_feature_div, 'html');
+    });
+
+    // clicks to handle form buttons
+    // create client
+    $('body').on('click', '#create-client-btn', function () {
+        var create_form = $('#new-client').serialize();
+        call_url(apiUrl + '/clients/', '', success_function, error_function, create_form);
+    });
+
+    // create project
+    $('body').on('click', '#create-project-btn', function () {
+        var create_form = $('#new-project').serialize();
+        call_url(apiUrl + '/projects/', '', success_function, error_function, create_form);
+    });
+
+    // create feature
+    $('body').on('click', '#create-feature-btn', function () {
+        var create_form = $('#new-feature').serialize();
+        call_url(apiUrl + '/features/', '', success_function, error_function, create_form);
+    });
+
+    // update feature
+    $('body').on('click', '#update-feature-btn', function () {
+        var feature_pk = $('#feature_pk').val();
+        var update_form = $('#update-feature-form').serialize();
+        call_url(apiUrl + '/features/' + feature_pk + '/', null, success_function, error_function, update_form, 'PUT')
+    });
+
+    function success_function() {
+        swal('Data Updated Successfully');
+        $('#new-feature').empty();
+    }
+    function error_function(res) {
+        swal('Error: Please ensure all form fields are filled properly.');
+    }
+
+});
+</script>
+</html>

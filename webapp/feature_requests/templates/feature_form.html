@@ -1,0 +1,7 @@
+{% load rest_framework %}
+
+<form id="new-feature" method="POST">
+    {% csrf_token %}
+    {% render_form serializer %}
+</form>
+<input id="create-feature-btn" class="btn btn-primary" type="submit" value="Create">
