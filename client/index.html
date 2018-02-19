@@ -25,6 +25,7 @@
                 <h4>Choose a Client & Project to Update a Feature</h4>
                 <p>
                     NOTE: A Project may only be assigned to one client and a feature to only one project.
+                    A feature may not be reassigned to another project once created.
                 </p>
             </div>
 
@@ -221,10 +222,15 @@ $(document).ready(function() {
     });
 
     function success_function() {
-        swal('Data Updated Successfully');
-        $('#new-feature').empty();
+        swal('Data Updated Successfully').then(function(e) {
+            location.reload();
+        });
+
+        $('#feature_form').empty();
+        $('#feature-form').hide();
+
     }
-    function error_function(res) {
+    function error_function() {
         swal('Error: Please ensure all form fields are filled properly.');
     }
 
