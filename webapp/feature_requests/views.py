@@ -59,39 +59,59 @@ class FeaturesViewSet(viewsets.ModelViewSet):
         return super(FeaturesViewSet, self).retrieve(request, *args, **kwargs)
 
     def perform_create(self, serializer):
+        project = self.request.data['project']
         requested = int(self.request.data['priority'])
         max_value = get_max_value()
 
-        if requested < 1 or requested > max_value:
-            return JsonResponse('Invalid Priority', safe=False)
-        else:
-            search = self.get_queryset().filter(priority__gte=requested)
-            search.update(priority=F('priority') + 1)
+        try:
+            requested = int(requested)
+        except Exception:
+            requested = 1
 
-            serializer.save()
+        if requested is 0:
+            requested = 1
+        elif requested > max_value:
+            requested = max_value + 1
+
+        search = self.get_queryset().filter(priority__gte=requested).filter(project=project)
+        search.update(priority=F('priority') + 1)
+
+        serializer.save()
 
     def perform_update(self, serializer):
-        requested = int(self.request.data['priority'])
+        project = self.request.data['project']
+        requested = self.request.data['priority']
+
         current = self.get_object().priority
         max_value = get_max_value()
 
-        if requested < 1 or requested > max_value:
-            return JsonResponse('Invalid Priority', safe=False)
+        try:
+            requested = int(requested)
+        except Exception:
+            requested = 1
+
+        if requested is 0:
+            requested = 1
+        elif requested > max_value:
+            requested = max_value + 1
 
         if requested < current:
-            search = self.get_queryset().filter(priority__lt=current).filter(priority__gte=requested)
+            search = self.get_queryset().filter(priority__lt=current).filter(priority__gte=requested).filter(
+                project=project)
             search.update(priority=F('priority') + 1)
 
         else:
-            search = self.get_queryset().filter(priority__gt=current).filter(priority__lte=requested)
+            search = self.get_queryset().filter(priority__gt=current).filter(priority__lte=requested).filter(
+                project=project)
             search.update(priority=F('priority') - 1)
 
         serializer.save()
 
     def perform_destroy(self, serializer):
         current = self.get_object().priority
+        project = self.request.data['project']
 
-        search = self.get_queryset().filter(priority__gt=current)
+        search = self.get_queryset().filter(priority__gt=current).filter(project=project)
         search.update(priority=F('priority') - 1)
 
         serializer.delete()

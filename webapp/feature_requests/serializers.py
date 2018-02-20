@@ -13,14 +13,46 @@ class FeaturesSerializer(serializers.ModelSerializer):
     product_area = serializers.PrimaryKeyRelatedField(queryset=ProductArea.objects.all())
     project = serializers.PrimaryKeyRelatedField(queryset=Projects.objects.all())
 
+    def create(self, validated_data):
+        max_value = max(sorted(list(Features.objects.values_list('priority', flat=True))))
+
+        priority = validated_data.get('priority', None)
+        if priority is None or priority == '':
+            validated_data['priority'] = 1
+        elif priority > max_value or priority == 0:
+            if priority == 0:
+                validated_data['priority'] = 1
+            elif priority > max_value:
+                validated_data['priority'] = max_value + 1
+
+        return Features.objects.create(**validated_data)
+
     def update(self, instance, validated_data):
+        max_value = max(sorted(list(Features.objects.values_list('priority', flat=True))))
+
         instance.title = validated_data.get('title', instance.title)
-        instance.description = validated_data.get('description', instance.title)
-        instance.priority = validated_data.get('priority', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+
+        priority = validated_data.get('priority', None)
+        if priority is None or priority == '':
+            instance.priority = 1
+        elif priority > max_value:
+            if instance.priority == max_value:
+                pass
+            elif instance.priority < max_value:
+                instance.priority = max_value
+            else:
+                instance.priority = max_value + 1
+        elif priority == 0:
+            instance.priority = 1
+        else:
+            instance.priority = priority
+
         instance.target_date = validated_data.get('target_date', instance.target_date)
         instance.project = instance.project
         instance.product_area = validated_data.get('product_area', instance.product_area)
         instance.save()
+
         return instance
 
     class Meta:
