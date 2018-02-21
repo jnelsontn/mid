@@ -19,7 +19,7 @@ class Projects(models.Model):
     client = models.ForeignKey(Clients, on_delete=models.PROTECT, related_name='projects')
 
     def __str__(self):
-        return self.project_name
+        return self.project_name + ' (' + self.client.client_name + ')'
 
     class Meta:
         unique_together = (('project_id', 'client'),)

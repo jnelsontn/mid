@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from .func import get_max_value
 from .models import *
 
 
@@ -14,39 +15,42 @@ class FeaturesSerializer(serializers.ModelSerializer):
     project = serializers.PrimaryKeyRelatedField(queryset=Projects.objects.all())
 
     def create(self, validated_data):
-        max_value = max(sorted(list(Features.objects.values_list('priority', flat=True))))
-
+        project = validated_data['project']
         priority = validated_data.get('priority', None)
-        if priority is None or priority == '':
-            validated_data['priority'] = 1
-        elif priority > max_value or priority == 0:
-            if priority == 0:
+        max_value = get_max_value(project)
+
+        if max_value:
+            if priority is None or priority == '':
                 validated_data['priority'] = 1
-            elif priority > max_value:
-                validated_data['priority'] = max_value + 1
+            elif priority > max_value or priority == 0:
+                if priority == 0:
+                    validated_data['priority'] = 1
+                elif priority > max_value:
+                    validated_data['priority'] = max_value + 1
+        else:
+            validated_data['priority'] = 1
 
         return Features.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        max_value = max(sorted(list(Features.objects.values_list('priority', flat=True))))
+        project = instance.project
+        max_value = get_max_value(project)
 
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
 
         priority = validated_data.get('priority', None)
-        if priority is None or priority == '':
-            instance.priority = 1
-        elif priority > max_value:
-            if instance.priority == max_value:
-                pass
-            elif instance.priority < max_value:
-                instance.priority = max_value
-            else:
+        if max_value:
+            if priority is None or priority == '':
+                instance.priority = 1
+            elif priority >= max_value:
                 instance.priority = max_value + 1
-        elif priority == 0:
-            instance.priority = 1
+            elif priority == 0:
+                instance.priority = 1
+            else:
+                instance.priority = priority
         else:
-            instance.priority = priority
+            instance.priority = 1
 
         instance.target_date = validated_data.get('target_date', instance.target_date)
         instance.project = instance.project

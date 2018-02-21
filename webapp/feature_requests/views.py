@@ -1,20 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.renderers import *
 from rest_framework import viewsets
-from django.http import JsonResponse
 from django.db.models import F
+from .func import get_max_value
 from .serializers import *
 from .models import *
-
-
-def get_max_value():
-    return max(sorted(list(Features.objects.values_list('priority', flat=True))))
-
-
-def return_max_value(request):
-    if request.is_ajax():
-        max_value = get_max_value()
-        return JsonResponse(max_value, safe=False)
 
 
 class FeaturesViewSet(viewsets.ModelViewSet):
@@ -61,29 +51,28 @@ class FeaturesViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         project = self.request.data['project']
         requested = int(self.request.data['priority'])
-        max_value = get_max_value()
+        max_value = get_max_value(project)
 
         try:
             requested = int(requested)
         except Exception:
             requested = 1
 
-        if requested is 0:
-            requested = 1
-        elif requested > max_value:
-            requested = max_value + 1
+        if max_value:
+            if requested is 0:
+                requested = 1
+            elif requested > max_value:
+                requested = max_value + 1
 
-        search = self.get_queryset().filter(priority__gte=requested).filter(project=project)
-        search.update(priority=F('priority') + 1)
+            search = self.get_queryset().filter(priority__gte=requested).filter(project=project)
+            search.update(priority=F('priority') + 1)
 
         serializer.save()
 
     def perform_update(self, serializer):
         project = self.request.data['project']
         requested = self.request.data['priority']
-
         current = self.get_object().priority
-        max_value = get_max_value()
 
         try:
             requested = int(requested)
@@ -92,8 +81,6 @@ class FeaturesViewSet(viewsets.ModelViewSet):
 
         if requested is 0:
             requested = 1
-        elif requested > max_value:
-            requested = max_value + 1
 
         if requested < current:
             search = self.get_queryset().filter(priority__lt=current).filter(priority__gte=requested).filter(

@@ -12,5 +12,4 @@ router.register(r'product-area', views.ProductAreaViewSet)
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^admin/', admin.site.urls),
-    url(r'^maxvalue/', views.return_max_value),
 ]
