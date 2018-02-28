@@ -33,4 +33,5 @@ Unittests are in the feature_requests/tests.py file. They can be initiated by th
 * Server Framework: Django 1.11.10 w/Django REST Framework 3.3.7
 * ORM: Django
 * Javascript: JQuery 3.3.1
+* CSS: Bootstrap 3.3.7
 
