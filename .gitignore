@@ -8,4 +8,6 @@ env/
 mid/
 *.sqlite3
 .idea/
+__init__.py
 node_modules/
+webapp/feature_requests/tests.py
